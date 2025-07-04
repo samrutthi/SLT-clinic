@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Case Supervisor Dashboard</h2>
+
+    <!-- My Therapists Section -->
+    <div class="card p-4 mb-4">
+        <h4>🧑‍⚕️ Therapists Assigned</h4>
+        <ul class="list-group">
+            {% for therapist in therapists %}
+                <li class="list-group-item">{{ therapist.username }} - {{ therapist.email }}</li>
+            {% empty %}
+                <li class="list-group-item">No therapists assigned.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Lesson Plans Requiring Feedback -->
+    <div class="card p-4 mb-4">
+        <h4>📘 Lesson Plans to Review</h4>
+        <form method="POST">
+            {% csrf_token %}
+            {% for lp in lesson_plans %}
+                <div class="mb-3 border rounded p-3">
+                    <p><strong>Patient:</strong> {{ lp.patient.name }} | <strong>Therapist:</strong> {{ lp.therapist.username }}</p>
+                    <p><strong>Content:</strong> {{ lp.plan_text }}</p>
+                    <textarea class="form-control" name="feedback_{{ lp.id }}" placeholder="Enter feedback (optional)">{{ lp.feedback }}</textarea>
+                </div>
+            {% empty %}
+                <p>No lesson plans pending feedback.</p>
+            {% endfor %}
+            {% if lesson_plans %}
+                <button type="submit" name="submit_feedback" class="btn btn-primary">Submit Feedback</button>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Session Reports -->
+    <div class="card p-4 mb-4">
+        <h4>📄 Session Reports</h4>
+        <ul class="list-group">
+            {% for report in session_reports %}
+                <li class="list-group-item">
+                    <strong>{{ report.patient.name }}</strong> - {{ report.therapist.username }}<br>
+                    <small class="text-muted">{{ report.created_at|date:"d M Y H:i" }}</small><br>
+                    {{ report.report_text }}
+                </li>
+            {% empty %}
+                <li class="list-group-item">No session reports available.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Rate Patients -->
+    <div class="card p-4 mb-4">
+        <h4>⭐ Rate Patient Progress</h4>
+        <form method="POST">
+            {% csrf_token %}
+            {% for patient in patients_to_rate %}
+                <div class="mb-3 border rounded p-3">
+                    <p><strong>{{ patient.name }}</strong> ({{ patient.patient_id }})</p>
+                    <label for="rating_{{ patient.id }}">Rating (1-5):</label>
+                    <select name="rating_{{ patient.id }}" class="form-control" required>
+                        <option value="">-- Select Rating --</option>
+                        {% for r in "12345" %}
+                            <option value="{{ r }}" {% if patient.rating == r|add:0 %}selected{% endif %}>{{ r }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% empty %}
+                <p>No patients found for rating.</p>
+            {% endfor %}
+            {% if patients_to_rate %}
+                <button type="submit" name="submit_rating" class="btn btn-success">Submit Ratings</button>
+            {% endif %}
+        </form>
+    </div>
+</div>
+{% endblock %}

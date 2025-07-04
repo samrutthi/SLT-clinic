@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Clinical Supervisor Dashboard</h2>
+
+    <!-- 🧪 Pending Pre-Assessment Reports -->
+    <div class="card p-4 mb-4">
+        <h4>🧾 Reports Awaiting Approval</h4>
+        {% if reports_pending %}
+            {% for report in reports_pending %}
+                <div class="border p-3 mb-3">
+                    <h5>{{ report.patient.name }}'s Report</h5>
+                    <p><strong>Submitted by:</strong> {{ report.therapist.username }}</p>
+                    <p>{{ report.report_text }}</p>
+
+                    <form method="POST" class="mt-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="report_id" value="{{ report.id }}">
+                        <div class="mb-2">
+                            <textarea name="feedback" class="form-control" rows="2" placeholder="Feedback (if rejecting)"></textarea>
+                        </div>
+                        <button name="action" value="approve" class="btn btn-success btn-sm me-2">✅ Approve</button>
+                        <button name="action" value="reject" class="btn btn-danger btn-sm">❌ Reject</button>
+                    </form>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No reports pending approval.</p>
+        {% endif %}
+    </div>
+
+    <!-- ❗Patients with therapist but no report submitted yet -->
+    <div class="card p-4 mb-4">
+        <h4>📌 Patients Without Submitted Report</h4>
+        <ul class="list-group">
+            {% for p in pending_reports %}
+                <li class="list-group-item">
+                    {{ p.name }} ({{ p.patient_id }}) - Assigned to {{ p.therapist.username }}
+                </li>
+            {% empty %}
+                <li class="list-group-item">All reports submitted ✅</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- 👨‍⚕️ Allocate Final Therapist & Case Supervisor -->
+    <div class="card p-4 mb-4">
+        <h4>🛠️ Allocate Therapist & Case Supervisor</h4>
+        <form method="POST" action="">
+            {% csrf_token %}
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Patient</th>
+                            <th>Therapist</th>
+                            <th>Case Supervisor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients_to_allocate %}
+                            <tr>
+                                <td>{{ patient.name }} ({{ patient.patient_id }})</td>
+                                <td>
+                                    <select name="therapist_{{ patient.id }}" class="form-select form-select-sm" required>
+                                        <option value="">-- Select --</option>
+                                        {% for t in therapists %}
+                                            <option value="{{ t.id }}">{{ t.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="case_supervisor_{{ patient.id }}" class="form-select form-select-sm" required>
+                                        <option value="">-- Select --</option>
+                                        {% for c in case_supervisors %}
+                                            <option value="{{ c.id }}">{{ c.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3">No approved patients pending allocation ✅</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if patients_to_allocate %}
+                <button type="submit" name="allocate" value="true" class="btn btn-primary mt-3">💾 Save Allocations</button>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- 📊 Summary -->
+    <div class="card p-4 mb-4">
+        <h4>📊 Clinic Summary</h4>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">🧍 Total Patients: {{ summary.total_patients }}</li>
+            <li class="list-group-item">📌 Pending Reports: {{ summary.pending_reports }}</li>
+            <li class="list-group-item">✅ Approved Reports: {{ summary.approved_reports }}</li>
+            <li class="list-group-item">🧑‍⚕️ Total Therapists: {{ summary.therapist_count }}</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

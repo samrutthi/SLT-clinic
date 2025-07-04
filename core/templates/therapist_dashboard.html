@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Therapist Dashboard</h2>
+
+    <!-- Submit Pre-Assessment Report -->
+    <div class="card p-4 mb-4">
+        <h4>🧪 Submit Pre-Assessment Report</h4>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="pre_assessment">
+            <div class="mb-3">
+                <label>Select Patient:</label>
+                <select name="patient_id" class="form-control" required>
+                    <option value="">-- Select Patient --</option>
+                    {% for p in pre_assessment_patients %}
+                        <option value="{{ p.id }}">{{ p.name }} ({{ p.patient_id }})</option>
+                    {% empty %}
+                        <option disabled>No patients available</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Report Content:</label>
+                <textarea name="report_text" class="form-control" rows="5" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Report</button>
+        </form>
+    </div>
+
+    <!-- Submit Lesson Plan -->
+    <div class="card p-4 mb-4">
+        <h4>📘 Submit Lesson Plan</h4>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="lesson_plan">
+            <div class="mb-3">
+                <label>Select Patient:</label>
+                <select name="patient_id" class="form-control" required>
+                    <option value="">-- Select Patient --</option>
+                    {% for p in final_therapy_patients %}
+                        <option value="{{ p.id }}">{{ p.name }} ({{ p.patient_id }})</option>
+                    {% empty %}
+                        <option disabled>No final therapy patients</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Lesson Plan Content:</label>
+                <textarea name="plan_text" class="form-control" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">Submit Lesson Plan</button>
+        </form>
+    </div>
+
+    <!-- Submit Session Report -->
+    <div class="card p-4 mb-4">
+        <h4>📄 Submit Session Report</h4>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="session_report">
+            <div class="mb-3">
+                <label>Select Patient:</label>
+                <select name="patient_id" class="form-control" required>
+                    <option value="">-- Select Patient --</option>
+                    {% for p in final_therapy_patients %}
+                        <option value="{{ p.id }}">{{ p.name }} ({{ p.patient_id }})</option>
+                    {% empty %}
+                        <option disabled>No final therapy patients</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Session Report Content:</label>
+                <textarea name="report_text" class="form-control" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-info">Submit Session Report</button>
+        </form>
+    </div>
+
+    <!-- Submitted Pre-Assessment Reports -->
+    <div class="card p-4 mb-4">
+        <h4>📄 Your Submitted Pre-Assessment Reports</h4>
+        <ul class="list-group">
+            {% for report in reports %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        {{ report.patient.name }} - 
+                        <small class="text-muted">{{ report.created_at|date:"d M Y H:i" }}</small>
+                    </div>
+                    <span>
+                        {% if report.approved %}
+                            <span class="badge bg-success">✅ Approved</span>
+                        {% elif report.feedback %}
+                            <span class="badge bg-danger">❌ Rejected</span> - {{ report.feedback }}
+                        {% else %}
+                            <span class="badge bg-warning text-dark">⏳ Pending</span>
+                        {% endif %}
+                    </span>
+                </li>
+            {% empty %}
+                <li class="list-group-item">No reports submitted yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Final Therapy Patients -->
+    <div class="card p-4 mb-4">
+        <h4>👩‍⚕️ Final Therapy Patients</h4>
+        <ul class="list-group">
+            {% for p in final_therapy_patients %}
+                <li class="list-group-item">
+                    {{ p.name }} ({{ p.patient_id }}) - Assigned on {{ p.created_at|date:"d M Y" }}
+                </li>
+            {% empty %}
+                <li class="list-group-item">No final therapy patients.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
