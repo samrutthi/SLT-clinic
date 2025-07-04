@@ -13,7 +13,7 @@ def logout_view(request):
     return redirect('login')
 
 def home(request):
-    return HttpResponse("Welcome to Speech Therapy Project!")
+    return redirect('login')
 
 def login_view(request):
     if request.method == 'POST':
